@@ -1,6 +1,6 @@
 ![Build Status](https://travis-ci.org/mweagle/go-cloudcondenser.svg?branch=master)
 
-# go-cloudcondensor
+# go-cloudcondenser
 
 Compose and compile CloudFormation templates written in Go.
 
