@@ -1,0 +1,15 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Resources": {
+    "CloudFormerAWSIAMRole0": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {}
+    },
+    "MyResource": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "BucketName": "MyS3Bucket"
+      }
+    }
+  }
+}
