@@ -1,0 +1,7 @@
+language: go
+go:
+- 1.9.4
+- tip
+before_install:
+- echo "before_install"
+script: make travis-ci-test
