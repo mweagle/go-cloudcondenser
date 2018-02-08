@@ -11,7 +11,7 @@ import (
 //
 
 // simple template for testing
-var simple = gocc.CloudformationCondenser{
+var simple = gocc.CloudFormationCondenser{
 	Description: "My Stack",
 	Resources: []interface{}{
 		// Dynamically assigned resource name
@@ -32,7 +32,7 @@ func emptyProvider(ctx context.Context, template *gocf.Template) (context.Contex
 }
 
 // simpleConditional template for testing
-var simpleConditional = gocc.CloudformationCondenser{
+var simpleConditional = gocc.CloudFormationCondenser{
 	Description: "My Stack",
 	Resources: []interface{}{
 		// Dynamically assigned resource name
@@ -70,7 +70,7 @@ func MultipleResourceProvider() gocc.ResourceProvider {
 }
 
 // multiTemplate for a simple test
-var multiTemplate = gocc.CloudformationCondenser{
+var multiTemplate = gocc.CloudFormationCondenser{
 	Description: "My Stack",
 	Resources: []interface{}{
 		// Multiple resources "lifted" to WebsiteResourcesXXX
@@ -92,7 +92,7 @@ func freeProvider(ctx context.Context, template *gocf.Template) (context.Context
 }
 
 // simpleConditional template for testing
-var freeTemplate = gocc.CloudformationCondenser{
+var freeTemplate = gocc.CloudFormationCondenser{
 	Description: "My Stack",
 	Resources: []interface{}{
 		gocc.ProviderFunc(freeProvider),

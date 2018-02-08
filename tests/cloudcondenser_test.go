@@ -13,7 +13,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-var condenserTemplates = map[string]gocc.CloudformationCondenser{
+var condenserTemplates = map[string]gocc.CloudFormationCondenser{
 	"simple":             simple,
 	"simple-conditional": simpleConditional,
 	"multi":              multiTemplate,
@@ -81,7 +81,7 @@ func provider2(ctx context.Context, template *gocf.Template) (context.Context, e
 	return ctx, nil
 }
 
-var contextTemplate = gocc.CloudformationCondenser{
+var contextTemplate = gocc.CloudFormationCondenser{
 	Description: "My Stack",
 	Resources: []interface{}{
 		gocc.ProviderFunc(provider1),

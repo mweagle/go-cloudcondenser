@@ -36,7 +36,7 @@ func mapKeys(mapType interface{}) (set.Set, error) {
 	return set.NewSetFromSlice(result), nil
 }
 
-// ResourceProvider is the interface that CloudformationCondenser
+// ResourceProvider is the interface that CloudFormationCondenser
 // Resources must satisfy. They are responsible for annotating
 // the target template with CloudFormation information
 type ResourceProvider interface {
@@ -112,13 +112,13 @@ func (pfunc ProviderFunc) Annotate(ctx context.Context, template *gocf.Template)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-// CloudformationCondenser is the root template type
-type CloudformationCondenser struct {
+// CloudFormationCondenser is the root template type
+type CloudFormationCondenser struct {
 	Description string
 	Resources   []interface{}
 }
 
-func (cfTemplate *CloudformationCondenser) safeMerge(mergeIndex int,
+func (cfTemplate *CloudFormationCondenser) safeMerge(mergeIndex int,
 	src *gocf.Template,
 	dest *gocf.Template) []error {
 	mergeErrors := make([]error, 0)
@@ -261,7 +261,7 @@ func (cfTemplate *CloudformationCondenser) safeMerge(mergeIndex int,
 }
 
 // Evaluate executes all the registered resource providers
-func (cfTemplate *CloudformationCondenser) Evaluate(ctx context.Context) (*gocf.Template, error) {
+func (cfTemplate *CloudFormationCondenser) Evaluate(ctx context.Context) (*gocf.Template, error) {
 	evaluationErrors := make([]error, 0)
 
 	// This is ultimately where everything will be merged

@@ -9,7 +9,7 @@ Compose and compile CloudFormation templates written in Go.
 ## Define Template
 
 ```go
-var DefaultTemplate = gocc.CloudformationCondenser{
+var DefaultTemplate = gocc.CloudFormationCondenser{
 	Description: "My Stack",
 	Resources: []interface{}{
 		// Dynamically assigned resource name
@@ -40,7 +40,7 @@ var DefaultTemplate = gocc.CloudformationCondenser{
 ## Convert to CLI
 
 See _./cmd/main.go_ for a simple CLI app that produces
-JSON output from a `gocc.CloudformationCondenser` instance:
+JSON output from a `gocc.CloudFormationCondenser` instance:
 
 ## Results
 

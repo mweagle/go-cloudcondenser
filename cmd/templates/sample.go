@@ -44,7 +44,7 @@ func emptyProvider(ctx context.Context, template *gocf.Template) (context.Contex
 // DefaultTemplate for a simple test. ResourceProviders have
 // access to a context object with command line args for
 // internal conditionals
-var DefaultTemplate = gocc.CloudformationCondenser{
+var DefaultTemplate = gocc.CloudFormationCondenser{
 	Description: "My Stack",
 	Resources: []interface{}{
 		// Dynamically assigned resource name
