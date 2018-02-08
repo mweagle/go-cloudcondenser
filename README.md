@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/mweagle/go-cloudcondenser.svg?branch=master)]
+![Build Status](https://travis-ci.org/mweagle/go-cloudcondenser.svg?branch=master)
 
 # go-cloudcondensor
 
