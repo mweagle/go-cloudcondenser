@@ -112,14 +112,9 @@ func (pfunc ProviderFunc) Annotate(ctx context.Context, template *gocf.Template)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-// CloudFormationCondenser is the root template type
-type CloudFormationCondenser struct {
-	Description string
-	Resources   []interface{}
-}
-
-func (cfTemplate *CloudFormationCondenser) safeMerge(mergeIndex int,
-	src *gocf.Template,
+// SafeMerge is a free function that merges src into dest, reporting
+// back any conflicting merge operations
+func SafeMerge(src *gocf.Template,
 	dest *gocf.Template) []error {
 	mergeErrors := make([]error, 0)
 	// Get everything and check it for collisions
@@ -146,8 +141,7 @@ func (cfTemplate *CloudFormationCondenser) safeMerge(mergeIndex int,
 		collidingKeys := destMappingKeys.Intersect(srcMappingKeys)
 		if collidingKeys.Cardinality() > 0 {
 			mergeErrors = append(mergeErrors,
-				errors.Errorf("Duplicate template.Mappings keynames detected at Resources[%d]: %s",
-					mergeIndex,
+				errors.Errorf("Duplicate template.Mappings keynames detected: %s",
 					collidingKeys.String()))
 		} else {
 			for eachKey, eachMapping := range src.Mappings {
@@ -172,8 +166,7 @@ func (cfTemplate *CloudFormationCondenser) safeMerge(mergeIndex int,
 		collidingKeys := destParameterKeys.Intersect(srcParameterKeys)
 		if collidingKeys.Cardinality() > 0 {
 			mergeErrors = append(mergeErrors,
-				errors.Errorf("Duplicate template.Parameters keynames detected at Resources[%d]: %s",
-					mergeIndex,
+				errors.Errorf("Duplicate template.Parameters keynames detected: %s",
 					collidingKeys.String()))
 		} else {
 			for eachKey, eachParam := range src.Parameters {
@@ -197,8 +190,7 @@ func (cfTemplate *CloudFormationCondenser) safeMerge(mergeIndex int,
 		collidingKeys := destResourceKeys.Intersect(srcResourceKeys)
 		if collidingKeys.Cardinality() > 0 {
 			mergeErrors = append(mergeErrors,
-				errors.Errorf("Duplicate template.Resources keynames detected at Resources[%d]: %s",
-					mergeIndex,
+				errors.Errorf("Duplicate template.Resources keynames detected: %s",
 					collidingKeys.String()))
 		} else {
 			for eachKey, eachResource := range src.Resources {
@@ -222,8 +214,7 @@ func (cfTemplate *CloudFormationCondenser) safeMerge(mergeIndex int,
 		collidingKeys := destOutputKeys.Intersect(srcOutputKeys)
 		if collidingKeys.Cardinality() > 0 {
 			mergeErrors = append(mergeErrors,
-				errors.Errorf("Duplicate template.Outputs keynames detected at Resources[%d]: %s",
-					mergeIndex,
+				errors.Errorf("Duplicate template.Outputs keynames detected: %s",
 					collidingKeys.String()))
 		} else {
 			for eachKey, eachOutput := range src.Outputs {
@@ -248,8 +239,7 @@ func (cfTemplate *CloudFormationCondenser) safeMerge(mergeIndex int,
 		collidingKeys := destConditionKeys.Intersect(srcConditionKeys)
 		if collidingKeys.Cardinality() > 0 {
 			mergeErrors = append(mergeErrors,
-				errors.Errorf("Duplicate template.Conditions keynames detected at Resources[%d]: %s",
-					mergeIndex,
+				errors.Errorf("Duplicate template.Conditions keynames detected: %s",
 					collidingKeys.String()))
 		} else {
 			for eachKey, eachCondition := range src.Conditions {
@@ -258,6 +248,14 @@ func (cfTemplate *CloudFormationCondenser) safeMerge(mergeIndex int,
 		}
 	}
 	return mergeErrors
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+// CloudFormationCondenser is the root template type
+type CloudFormationCondenser struct {
+	Description string
+	Resources   []interface{}
 }
 
 // Evaluate executes all the registered resource providers
@@ -286,9 +284,11 @@ func (cfTemplate *CloudFormationCondenser) Evaluate(ctx context.Context) (*gocf.
 		if annotateErr != nil {
 			evaluationErrors = append(evaluationErrors, annotateErr)
 		} else {
-			safeMergeErrors := cfTemplate.safeMerge(eachIndex, annotationTemplate, targetTemplate)
-			if len(safeMergeErrors) != 0 {
-				evaluationErrors = append(evaluationErrors, safeMergeErrors...)
+			safeMergeErrors := SafeMerge(annotationTemplate, targetTemplate)
+			for _, eachError := range safeMergeErrors {
+				indexErr := errors.Wrapf(eachError, "Resource[%d]",
+					eachIndex)
+				evaluationErrors = append(evaluationErrors, indexErr)
 			}
 		}
 	}
