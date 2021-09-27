@@ -3,8 +3,10 @@ package tests
 import (
 	"context"
 
+	gof "github.com/awslabs/goformation/v5/cloudformation"
+	gofiam "github.com/awslabs/goformation/v5/cloudformation/iam"
+	gofs3 "github.com/awslabs/goformation/v5/cloudformation/s3"
 	gocc "github.com/mweagle/go-cloudcondenser"
-	gocf "github.com/mweagle/go-cloudformation"
 )
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -15,10 +17,10 @@ var simple = gocc.CloudFormationCondenser{
 	Description: "My Stack",
 	Resources: []interface{}{
 		// Dynamically assigned resource name
-		gocf.IAMRole{},
+		&gofiam.Role{},
 		// User defined resource name
-		gocc.Static("MyResource", gocf.S3Bucket{
-			BucketName: gocf.String("MyS3Bucket"),
+		gocc.Static("MyResource", &gofs3.Bucket{
+			BucketName: "MyS3Bucket",
 		}),
 	},
 }
@@ -27,7 +29,7 @@ var simple = gocc.CloudFormationCondenser{
 //
 
 // emptyProvider is a free function that returns no resource
-func emptyProvider(ctx context.Context, template *gocf.Template) (context.Context, error) {
+func emptyProvider(ctx context.Context, template *gof.Template) (context.Context, error) {
 	return ctx, nil
 }
 
@@ -36,10 +38,10 @@ var simpleConditional = gocc.CloudFormationCondenser{
 	Description: "My Stack",
 	Resources: []interface{}{
 		// Dynamically assigned resource name
-		gocf.IAMRole{},
+		&gofiam.Role{},
 		// User defined resource name
-		gocc.Static("MyResource", gocf.S3Bucket{
-			BucketName: gocf.String("MyS3Bucket"),
+		gocc.Static("MyResource", &gofs3.Bucket{
+			BucketName: "MyS3Bucket",
 		}),
 		gocc.ProviderFunc(emptyProvider),
 	},
@@ -48,16 +50,16 @@ var simpleConditional = gocc.CloudFormationCondenser{
 type multiProvider struct {
 }
 
-func (sg *multiProvider) Annotate(ctx context.Context, template *gocf.Template) (context.Context, error) {
-	sampleRole := &gocf.IAMRole{
-		RoleName: gocf.String("CustomRole"),
+func (sg *multiProvider) Annotate(ctx context.Context, template *gof.Template) (context.Context, error) {
+	sampleRole := &gofiam.Role{
+		RoleName: "CustomRole",
 	}
-	template.AddResource("MultiRole", sampleRole)
+	template.Resources["MultiRole"] = sampleRole
 
 	// Add a bucket
-	template.AddResource("MultiBucket", &gocf.S3Bucket{
-		BucketName: gocf.String("CustomBucket"),
-	})
+	template.Resources["MultiBucket"] = &gofs3.Bucket{
+		BucketName: "CustomBucket",
+	}
 	return ctx, nil
 }
 
@@ -84,10 +86,10 @@ var multiTemplate = gocc.CloudFormationCondenser{
 //
 
 // freeProvider is a free function that returns one resource
-func freeProvider(ctx context.Context, template *gocf.Template) (context.Context, error) {
-	template.AddResource("FreeResource", &gocf.IAMRole{
-		RoleName: gocf.String("Free"),
-	})
+func freeProvider(ctx context.Context, template *gof.Template) (context.Context, error) {
+	template.Resources["FreeResource"] = &gofiam.Role{
+		RoleName: "Free",
+	}
 	return ctx, nil
 }
 

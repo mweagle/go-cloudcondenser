@@ -6,8 +6,8 @@ import (
 	"reflect"
 	"strings"
 
+	gof "github.com/awslabs/goformation/v5/cloudformation"
 	set "github.com/deckarep/golang-set"
-	gocf "github.com/mweagle/go-cloudformation"
 	"github.com/pkg/errors"
 )
 
@@ -40,7 +40,7 @@ func mapKeys(mapType interface{}) (set.Set, error) {
 // Resources must satisfy. They are responsible for annotating
 // the target template with CloudFormation information
 type ResourceProvider interface {
-	Annotate(ctx context.Context, template *gocf.Template) (context.Context, error)
+	Annotate(ctx context.Context, template *gof.Template) (context.Context, error)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -48,17 +48,17 @@ type ResourceProvider interface {
 ////////////////////////////////////////////////////////////////////////////////
 type static struct {
 	name  string
-	cfRes gocf.ResourceProperties
+	cfRes gof.Resource
 }
 
-func (res *static) Annotate(ctx context.Context, template *gocf.Template) (context.Context, error) {
-	template.AddResource(res.name, res.cfRes)
+func (res *static) Annotate(ctx context.Context, template *gof.Template) (context.Context, error) {
+	template.Resources[res.name] = res.cfRes
 	return ctx, nil
 }
 
 // Static returns a ResourceProvider for a static resource name
 func Static(name string,
-	cfRes gocf.ResourceProperties) ResourceProvider {
+	cfRes gof.Resource) ResourceProvider {
 	return &static{
 		name:  name,
 		cfRes: cfRes,
@@ -75,8 +75,8 @@ type flatten struct {
 	annotator  ResourceProvider
 }
 
-func (fm *flatten) Annotate(ctx context.Context, template *gocf.Template) (context.Context, error) {
-	generatorTemplate := gocf.NewTemplate()
+func (fm *flatten) Annotate(ctx context.Context, template *gof.Template) (context.Context, error) {
+	generatorTemplate := gof.NewTemplate()
 
 	annotatedCtx, annotationErr := fm.annotator.Annotate(ctx, generatorTemplate)
 	if annotationErr != nil {
@@ -103,10 +103,10 @@ func Flatten(namePrefix string, annotator ResourceProvider) ResourceProvider {
 
 // ProviderFunc is a wrapper around free functions that satisfies the
 // ResourceProvider interface
-type ProviderFunc func(ctx context.Context, template *gocf.Template) (context.Context, error)
+type ProviderFunc func(ctx context.Context, template *gof.Template) (context.Context, error)
 
 // Annotate satisfies the ResourceProvider interface
-func (pfunc ProviderFunc) Annotate(ctx context.Context, template *gocf.Template) (context.Context, error) {
+func (pfunc ProviderFunc) Annotate(ctx context.Context, template *gof.Template) (context.Context, error) {
 	return pfunc(ctx, template)
 }
 
@@ -114,8 +114,7 @@ func (pfunc ProviderFunc) Annotate(ctx context.Context, template *gocf.Template)
 
 // SafeMerge is a free function that merges src into dest, reporting
 // back any conflicting merge operations
-func SafeMerge(src *gocf.Template,
-	dest *gocf.Template) []error {
+func SafeMerge(src *gof.Template, dest *gof.Template) []error {
 	mergeErrors := make([]error, 0)
 	// Get everything and check it for collisions
 	/*
@@ -259,22 +258,22 @@ type CloudFormationCondenser struct {
 }
 
 // Evaluate executes all the registered resource providers
-func (cfTemplate *CloudFormationCondenser) Evaluate(ctx context.Context) (*gocf.Template, error) {
+func (cfTemplate *CloudFormationCondenser) Evaluate(ctx context.Context) (*gof.Template, error) {
 	evaluationErrors := make([]error, 0)
 
 	// This is ultimately where everything will be merged
-	targetTemplate := gocf.NewTemplate()
+	targetTemplate := gof.NewTemplate()
 
 	// Run through them...
 	var annotateErr error
 	for eachIndex, eachResource := range cfTemplate.Resources {
-		annotationTemplate := gocf.NewTemplate()
+		annotationTemplate := gof.NewTemplate()
 
 		switch typedValue := eachResource.(type) {
-		case gocf.ResourceProperties:
-			cleanTypeName := strings.Replace(typedValue.CfnResourceType(), ":", "", -1)
+		case gof.Resource:
+			cleanTypeName := strings.Replace(typedValue.AWSCloudFormationType(), ":", "", -1)
 			cfName := fmt.Sprintf("CloudFormer%s%d", cleanTypeName, eachIndex)
-			annotationTemplate.AddResource(cfName, typedValue)
+			annotationTemplate.Resources[cfName] = typedValue
 		case ResourceProvider:
 			ctx, annotateErr = typedValue.Annotate(ctx, annotationTemplate)
 		default:

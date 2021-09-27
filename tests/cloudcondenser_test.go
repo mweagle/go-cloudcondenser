@@ -8,8 +8,8 @@ import (
 	"reflect"
 	"testing"
 
+	gof "github.com/awslabs/goformation/v5/cloudformation"
 	gocc "github.com/mweagle/go-cloudcondenser"
-	gocf "github.com/mweagle/go-cloudformation"
 	"github.com/pkg/errors"
 )
 
@@ -44,7 +44,9 @@ func TestCloudCondensor(t *testing.T) {
 		}
 		templateOutput, templateOutputErr := eachTemplate.Evaluate(ctx)
 		if templateOutputErr != nil {
-			t.Fatalf("Failed to evaluate template :%s", templateOutputErr)
+			t.Fatalf("Failed to evaluate template %s. Error: %s",
+				eachExpectedFilename,
+				templateOutputErr)
 		}
 		templateJSON, templateJSONErr := json.Marshal(templateOutput)
 		if templateJSONErr != nil {
@@ -68,12 +70,12 @@ const (
 )
 
 // Verify that the context properly passes information
-func provider1(ctx context.Context, template *gocf.Template) (context.Context, error) {
+func provider1(ctx context.Context, template *gof.Template) (context.Context, error) {
 	ctx = context.WithValue(ctx, contextKeyTest, "test")
 	return ctx, nil
 }
 
-func provider2(ctx context.Context, template *gocf.Template) (context.Context, error) {
+func provider2(ctx context.Context, template *gof.Template) (context.Context, error) {
 	keyValue, keyValueOk := ctx.Value(contextKeyTest).(string)
 	if !keyValueOk || keyValue != "test" {
 		return nil, errors.Errorf("Failed to verify context values")
